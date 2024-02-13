@@ -21,7 +21,6 @@ class HomeViewModel @Inject constructor(
 
 
     init {
-
         viewModelScope.launch {
             val character = characterRepository.getCharacters()
             _state.value = character
