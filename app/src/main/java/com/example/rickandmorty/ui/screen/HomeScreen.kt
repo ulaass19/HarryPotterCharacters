@@ -39,6 +39,8 @@ import coil.compose.rememberImagePainter
 import com.example.rickandmorty.R
 import com.example.rickandmorty.data.model.Characters
 import com.example.rickandmorty.viewmodel.HomeViewModel
+import java.net.URLEncoder
+import java.nio.charset.StandardCharsets
 
 
 @Composable
@@ -52,7 +54,7 @@ fun ScreenRouter() {
             // Ana ekranın içeriği
             HomeScreen(navController = navController,viewModel)
         }
-        composable("detail/{characterName}/{characterActor}") { backStackEntry ->
+        composable("detail/{characterName}/{characterActor}/{characterImage}") { backStackEntry ->
             // Tıklanan karakterin adını al
             val characterName =
                 backStackEntry.arguments?.getString("characterName") ?: ""
@@ -60,8 +62,10 @@ fun ScreenRouter() {
             val characterActor =
                 backStackEntry.arguments?.getString("characterActor") ?: ""
 
+            val characterImage = backStackEntry.arguments?.getString("characterImage") ?: ""
+
             // Detay ekranını göster
-            DetailScreen(characterName = characterName, characterActor = characterActor)
+            DetailScreen(characterName = characterName, characterActor = characterActor, characterImage = characterImage)
         }
     }
     
@@ -114,7 +118,7 @@ fun HomeScreen(
                 }
             } else {
 
-                items(state) {character: Characters ->
+                items(state.take(25)) {character: Characters ->
                     CardImage(character = character) {
                         val text = "You clicked : ${character.name}"
                         val duration = Toast.LENGTH_LONG
@@ -122,7 +126,8 @@ fun HomeScreen(
                         val toast = Toast.makeText(context, text, duration)
                         toast.show()
 
-                        navController.navigate("detail/${character.name}/${character.actor}")
+                        val image = URLEncoder.encode(character.image,StandardCharsets.UTF_8.toString())
+                        navController.navigate("detail/${character.name}/${character.actor}/${image}")
                     }
                 }
 
@@ -150,10 +155,9 @@ fun CardImage(character: Characters,onItemClick : (String) -> (Unit)) {
 
         Box {
 
-            if (character.image.equals("")) {
 
                 Image(
-                    painter = painterResource(id = R.drawable.placeholder),
+                    painter = if (character.image == "") painterResource(id = R.drawable.placeholder) else imagePainter,
                     contentDescription = "",
                     modifier = Modifier
                         .fillMaxWidth()
@@ -184,44 +188,6 @@ fun CardImage(character: Characters,onItemClick : (String) -> (Unit)) {
                     }
 
                 }
-
-            } else {
-
-                Image(
-                    painter = imagePainter,
-                    contentDescription = "",
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(200.dp),
-                    contentScale = ContentScale.FillBounds
-                )
-
-                Surface(
-                    color = MaterialTheme.colorScheme.onSurface.copy(.3f),
-                    modifier = Modifier.align(Alignment.BottomCenter),
-                    contentColor = MaterialTheme.colorScheme.surface
-                ) {
-
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(4.dp)
-                    ) {
-
-                        Text(
-                            text = "${character.name} ",
-                            fontWeight = FontWeight.Bold
-                        )
-                        Text(
-                            text = "${character.actor} ",
-                            fontSize = 12.sp
-                        )
-                    }
-
-                }
-
-            }
-
 
         }
 
